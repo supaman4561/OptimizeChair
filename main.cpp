@@ -78,7 +78,6 @@ void setDrawStuff() {
   fn.step = &simLoop;
   fn.command = NULL;
   fn.stop = NULL;
-  fn.path_to_textures = "/home/dosu416/ode-0.13/drawstuff/textures";
 }
 
 void createHuman()
