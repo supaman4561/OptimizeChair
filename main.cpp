@@ -25,9 +25,19 @@ typedef struct {
 } Object;
 Object box, sensor;
 
+class Human 
+{
+  Object head, neck, arm, hand, body, thigh, leg, foot;
+  dReal x, y, z;
+public:
+  Human(Object head, Object neck, Object arm, Object hand,
+        Object body, Object thigh, Object leg, Object foot,
+        dReal x, dReal y, dReal z);
+}
+
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
-  static const int MAX_CONTACTS = 10;
+  static const int MAX_CONTACTS = 64;
 
   dBodyID b1 = dGeomGetBody(o1);
   dBodyID b2 = dGeomGetBody(o2);
@@ -80,14 +90,6 @@ void setDrawStuff() {
   fn.stop = NULL;
 }
 
-void createHuman()
-{
-  dMass m;
-  dReal x0=2.0, y0=0.0, z0=0.2;
-
-  
-}
-
 int main(int argc, char **argv)
 {
   setDrawStuff();
@@ -100,4 +102,9 @@ int main(int argc, char **argv)
 
   ground = dCreatePlane(space, 0, 0, 1, 0);
 
+  dsSimulationLoop(argc, argv, 400, 400, &fn);
+  dWorldDestroy(world);
+  dCloseODE();
+
+  return 0;
 }
