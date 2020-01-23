@@ -1,0 +1,2 @@
+#!/bin/sh
+exec g++ "$@" -I/usr/local/include/ode -I/usr/local/include/drawstuff -DdTRIMESH_ENABLED -lode -ldrawstuff -lGL -lGLU -lglut -lX11 -lpthread
