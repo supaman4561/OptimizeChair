@@ -1,5 +1,6 @@
 #include <ode/ode.h>
 #include <drawstuff/drawstuff.h>
+#include "object.hpp"
 
 #ifdef dDOUBLE
 #define dsDrawBox      dsDrawBoxD
@@ -18,22 +19,7 @@ static dJointGroupID contactgroup;
 dJointFeedback *feedback = new dJointFeedback;
 dsFunctions fn;
 
-typedef struct {
-  dBodyID body;
-  dGeomID geom;
-  dReal   radius, length, width, height, mass;
-} Object;
-Object box, sensor;
-
-class Human 
-{
-  Object head, neck, arm, hand, body, thigh, leg, foot;
-  dReal x, y, z;
-public:
-  Human(Object head, Object neck, Object arm, Object hand,
-        Object body, Object thigh, Object leg, Object foot,
-        dReal x, dReal y, dReal z);
-}
+Box* box[2];
 
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
@@ -48,9 +34,9 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
     if (n > 0) {
       for (int i=0; i<n; i++) {
-        contact[i].surface.mode = dContactBounce;
+        contact[i].surface.mode = dContactSoftCFM | dContactSoftERP;
         contact[i].surface.mu   = dInfinity;
-        contact[i].surface.soft_erp = 0.2;
+        contact[i].surface.soft_erp = 0.5;
         contact[i].surface.soft_cfm = 1e-8;
         dJointID c = dJointCreateContact(world, contactgroup, &contact[i]);
 
@@ -73,6 +59,9 @@ static void simLoop(int pause)
   printf("%5d Force fx=%6.2f ",steps++,feedback->f1[0]);
   printf("fy=%6.2f ",feedback->f1[1]);
   printf("fz=%6.2f \n",feedback->f1[2]);
+
+  box[0]->draw();
+  box[1]->draw();
 }
 
 void start()
@@ -88,6 +77,7 @@ void setDrawStuff() {
   fn.step = &simLoop;
   fn.command = NULL;
   fn.stop = NULL;
+  fn.path_to_textures = "/usr/local/lib/drawstuff.textures";
 }
 
 int main(int argc, char **argv)
@@ -101,6 +91,16 @@ int main(int argc, char **argv)
   dWorldSetGravity(world, 0, 0, -9.8);
 
   ground = dCreatePlane(space, 0, 0, 1, 0);
+
+  box[0] = new Box(world, 0.2, 0.2, 0.2, 0.0, 0.0, 0.5, 1.0);
+  box[0]->setGeom(space);
+  box[1] = new Box(world, 0.2, 0.2, 0.2, 0.0, 0.0, 0.8, 1.0);
+  box[1]->setGeom(space);
+
+  fixed = dJointCreateFixed(world, 0);
+  dJointAttach(fixed, box[0]->getBodyId(), box[1]->getBodyId());
+  dJointSetFixed(fixed);
+  dJointSetFeedback(fixed, feedback);
 
   dsSimulationLoop(argc, argv, 400, 400, &fn);
   dWorldDestroy(world);

@@ -2,27 +2,28 @@
 #define __OBJECT_H_
 #include <ode/ode.h>
 
-typedef enum {BOX, }type_t;
-
-typedef struct {
-  dReal x, y, z;
-} pos_t;
-
-typedef struct {
-  dReal x, y, z;
-  dReal rad;
-} shape_t;
-
 class Object
 {
+protected:
   dBodyID body;
   dGeomID geom;
-  pos_t pos;
-  shape_t shape;
+  dReal x, y, z;
   dReal mass;
 public:
-  Object(dBodyID body, dGeomID geom, shape_t shape, pos_t pos, dReal mass);
-  void Init(type_t t);
-}
+  Object(dWorldID world, dReal x, dReal y, dReal z, dReal mass);
+  dBodyID getBodyId();
+  dGeomID getGeomId();
+  virtual void setGeom(dSpaceID space) = 0;
+  virtual void draw() const = 0;
+};
+
+class Box : public Object
+{
+  dReal lx, ly, lz;
+public:
+  Box(dWorldID world, dReal lx, dReal ly, dReal lz, dReal x, dReal y, dReal z, dReal mass);
+  void setGeom(dSpaceID space);
+  void draw() const;
+};
 
 #endif // __OBJECT_H_
