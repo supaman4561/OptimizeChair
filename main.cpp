@@ -19,8 +19,6 @@ static dJointGroupID contactgroup;
 dJointFeedback *feedback = new dJointFeedback;
 dsFunctions fn;
 
-Box* box[2];
-
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
   static const int MAX_CONTACTS = 64;
@@ -67,7 +65,7 @@ static void simLoop(int pause)
 void start()
 {
   static float xyz[3] = {0.0, -3.0, 1.0};
-  static float hpr[3] = {90.0, 0.0, 0.0};
+  static float hpr[3] = {90.0, 0.0, 0.0}; 
   dsSetViewpoint(xyz, hpr);
 }
 
