@@ -93,9 +93,9 @@ int main(int argc, char **argv)
   ground = dCreatePlane(space, 0, 0, 1, 0);
 
   box[0] = new Box(world, 0.2, 0.2, 0.2, 0.0, 0.0, 0.5, 1.0);
-  box[0]->setGeom(space);
+  box[0]->createGeom(space);
   box[1] = new Box(world, 0.2, 0.2, 0.2, 0.0, 0.0, 0.8, 1.0);
-  box[1]->setGeom(space);
+  box[1]->createGeom(space);
 
   fixed = dJointCreateFixed(world, 0);
   dJointAttach(fixed, box[0]->getBodyId(), box[1]->getBodyId());
