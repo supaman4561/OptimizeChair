@@ -13,16 +13,16 @@ public:
   Object(dWorldID world, dReal x, dReal y, dReal z, dReal mass);
   dBodyID getBodyId();
   dGeomID getGeomId();
-  virtual void createGeom(dSpaceID space) = 0;
-  virtual void draw() const = 0;
+  void draw() const {};
 };
 
 class Box : public Object
 {
   dReal lx, ly, lz;
 public:
-  Box(dWorldID world, dReal lx, dReal ly, dReal lz, dReal x, dReal y, dReal z, dReal mass);
-  void createGeom(dSpaceID space);
+  Box(dWorldID world, dSpaceID space, dReal lx, dReal ly, dReal lz, dReal x, dReal y, dReal z, dReal mass);
+  dBodyID getBodyId();
+  dGeomID getGeomId();
   void draw() const;
 };
 
@@ -30,8 +30,9 @@ class Sphere : public Object
 {
   dReal radius;
 public:
-  Sphere(dWorldID world, dReal radius, dReal x, dReal y, dReal z, dReal mass);
-  void createGeom(dSpaceID space);
+  Sphere(dWorldID world, dSpaceID space, dReal radius, dReal x, dReal y, dReal z, dReal mass);
+  dBodyID getBodyId();
+  dGeomID getGeomId();
   void draw() const;
 };
 
@@ -40,8 +41,9 @@ class Capsule : public Object
   dReal length, radius;
   int direction;
 public:
-  Capsule(dWorldID world, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass);
-  void createGeom(dSpaceID space);
+  Capsule(dWorldID world, dSpaceID space, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass);
+  dBodyID getBodyId();
+  dGeomID getGeomId();
   void draw() const;
 };
 
@@ -50,8 +52,9 @@ class Cylinder : public Object
   dReal length, radius;
   int direction;
 public:
-  Cylinder(dWorldID world, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass);
-  void createGeom(dSpaceID space);
+  Cylinder(dWorldID world, dSpaceID space, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass);
+  dBodyID getBodyId();
+  dGeomID getGeomId();
   void draw() const;
 };
 
