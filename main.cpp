@@ -1,6 +1,7 @@
 #include <ode/ode.h>
 #include <drawstuff/drawstuff.h>
 #include "object.hpp"
+#include "human.hpp"
 
 #ifdef dDOUBLE
 #define dsDrawBox      dsDrawBoxD
@@ -18,6 +19,9 @@ static dJointID fixed;
 static dJointGroupID contactgroup;
 dJointFeedback *feedback = new dJointFeedback;
 dsFunctions fn;
+
+Human *human;
+Sphere *sphere;
 
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
@@ -53,13 +57,14 @@ static void simLoop(int pause)
   dWorldStep(world, 0.01);
   dJointGroupEmpty(contactgroup);
 
-  feedback = dJointGetFeedback(fixed);
-  printf("%5d Force fx=%6.2f ",steps++,feedback->f1[0]);
-  printf("fy=%6.2f ",feedback->f1[1]);
-  printf("fz=%6.2f \n",feedback->f1[2]);
+  human->draw();
+  sphere->draw();
 
-  box[0]->draw();
-  box[1]->draw();
+  // feedback = dJointGetFeedback(fixed);
+  // printf("%5d Force fx=%6.2f ",steps++,feedback->f1[0]);
+  // printf("fy=%6.2f ",feedback->f1[1]);
+  // printf("fz=%6.2f \n",feedback->f1[2]);
+
 }
 
 void start()
@@ -78,6 +83,18 @@ void setDrawStuff() {
   fn.path_to_textures = "/usr/local/lib/drawstuff.textures";
 }
 
+void generateHuman(dWorldID world, dSpaceID space)
+{
+  Sphere head(world, space, 0.75, 0, 0, 16.75, 0.48);
+  Box torso(world, space, 4.0, 2.0, 8.0, 0, 0, 12.0, 2.8);
+  Box rthigh(world, space, 1.5, 2.0, 4.0, -1.25, 0, 6.0, 0.84);
+  Box lthigh(world, space, 1.5, 2.0, 4.0, 1.25, 0, 6.0, 0.84);
+  Box rleg(world, space, 1.5, 2.0, 4.0, -1.25, 0, 2, 0.72);
+  Box lleg(world, space, 1.5, 2.0, 4.0, -1.25, 0, 2, 0.72);
+  human = new Human(world, head, torso, rthigh, lthigh, rleg, lleg, 0.0, 0.0);
+  sphere = &head;
+}
+
 int main(int argc, char **argv)
 {
   setDrawStuff();
@@ -90,15 +107,8 @@ int main(int argc, char **argv)
 
   ground = dCreatePlane(space, 0, 0, 1, 0);
 
-  box[0] = new Box(world, 0.2, 0.2, 0.2, 0.0, 0.0, 0.5, 1.0);
-  box[0]->createGeom(space);
-  box[1] = new Box(world, 0.2, 0.2, 0.2, 0.0, 0.0, 0.8, 1.0);
-  box[1]->createGeom(space);
-
-  fixed = dJointCreateFixed(world, 0);
-  dJointAttach(fixed, box[0]->getBodyId(), box[1]->getBodyId());
-  dJointSetFixed(fixed);
-  dJointSetFeedback(fixed, feedback);
+  generateHuman(world, space);
+  sphere = new Sphere(world, space, 1, 0, 0, 0, 1);
 
   dsSimulationLoop(argc, argv, 400, 400, &fn);
   dWorldDestroy(world);

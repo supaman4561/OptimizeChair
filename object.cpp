@@ -23,10 +23,8 @@ dGeomID Object::getGeomId()
 
 /*--------------------- Box class ----------------------*/
 
-Box::Box(dWorldID world, dReal lx, dReal ly, dReal lz, dReal x, dReal y, dReal z, dReal mass)
-  : lx(lx), ly(ly), lz(lz), Object::Object(world, x, y, z, mass) {}
-
-void Box::createGeom(dSpaceID space)
+Box::Box(dWorldID world, dSpaceID space, dReal lx, dReal ly, dReal lz, dReal x, dReal y, dReal z, dReal mass)
+  : lx(lx), ly(ly), lz(lz), Object::Object(world, x, y, z, mass) 
 {
   dMass m;
   dMassSetZero(&m);
@@ -34,6 +32,16 @@ void Box::createGeom(dSpaceID space)
   dBodySetMass(this->body, &m);
   this->geom = dCreateBox(space, this->lx, this->ly, this->lz);
   dGeomSetBody(this->geom, this->body);
+}
+
+dBodyID Box::getBodyId()
+{
+  return this->body;
+}
+
+dGeomID Box::getGeomId()
+{
+  return this->geom;
 }
 
 void Box::draw() const
@@ -44,10 +52,8 @@ void Box::draw() const
 
 /*--------------------- Sphere class ----------------------*/
 
-Sphere::Sphere(dWorldID world, dReal radius, dReal x, dReal y, dReal z, dReal mass)
-  : radius(radius), Object::Object(world, x, y, z, mass) {}
-
-void Sphere::createGeom(dSpaceID space)
+Sphere::Sphere(dWorldID world, dSpaceID space, dReal radius, dReal x, dReal y, dReal z, dReal mass)
+  : radius(radius), Object::Object(world, x, y, z, mass) 
 {
   dMass m;
   dMassSetZero(&m);
@@ -62,12 +68,20 @@ void Sphere::draw() const
   dsDrawSphere(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->radius);
 }
 
+dBodyID Sphere::getBodyId()
+{
+  return this->body;
+}
+
+dGeomID Sphere::getGeomId()
+{
+  return this->geom;
+}
+
 /*--------------------- Capsule class ----------------------*/
 
-Capsule::Capsule(dWorldID world, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass)
-  : length(length), radius(radius), direction(direction), Object::Object(world, x, y, z, mass) {}
-
-void Capsule::createGeom(dSpaceID space)
+Capsule::Capsule(dWorldID world, dSpaceID space, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass)
+  : length(length), radius(radius), direction(direction), Object::Object(world, x, y, z, mass) 
 {
   dMass m;
   dMassSetZero(&m);
@@ -84,10 +98,8 @@ void Capsule::draw() const
 
 /*--------------------- Cylinder class ----------------------*/
 
-Cylinder::Cylinder(dWorldID world, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass)
-  : length(length), radius(radius), direction(direction), Object::Object(world, x, y, z, mass) {}
-
-void Cylinder::createGeom(dSpaceID space)
+Cylinder::Cylinder(dWorldID world, dSpaceID space, dReal length, dReal radius, int direction, dReal x, dReal y, dReal z, dReal mass)
+  : length(length), radius(radius), direction(direction), Object::Object(world, x, y, z, mass) 
 {
   dMass m;
   dMassSetZero(&m);
