@@ -47,7 +47,7 @@ dGeomID Box::getGeomId()
 void Box::draw() const
 {
   dReal shape[] = {this->lx, this->ly, this->lz};
-  dsDrawBox(dBodyGetPosition(this->body), dBodyGetRotation(this->body), shape);
+  dsDrawBoxD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), shape);
 }
 
 /*--------------------- Sphere class ----------------------*/
@@ -65,7 +65,7 @@ Sphere::Sphere(dWorldID world, dSpaceID space, dReal radius, dReal x, dReal y, d
 
 void Sphere::draw() const
 {
-  dsDrawSphere(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->radius);
+  dsDrawSphereD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->radius);
 }
 
 dBodyID Sphere::getBodyId()
@@ -93,7 +93,7 @@ Capsule::Capsule(dWorldID world, dSpaceID space, dReal length, dReal radius, int
 
 void Capsule::draw() const
 {
-  dsDrawCapsule(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
+  dsDrawCapsuleD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
 }
 
 /*--------------------- Cylinder class ----------------------*/
@@ -111,5 +111,5 @@ Cylinder::Cylinder(dWorldID world, dSpaceID space, dReal length, dReal radius, i
 
 void Cylinder::draw() const
 {
-  dsDrawCylinder(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
+  dsDrawCylinderD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
 }

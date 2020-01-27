@@ -20,8 +20,11 @@ static dJointGroupID contactgroup;
 dJointFeedback *feedback = new dJointFeedback;
 dsFunctions fn;
 
-Human *human;
-Sphere *sphere;
+dJointID rnee, lnee;
+Box *rthigh;
+Box *lthigh;
+Box *rleg;
+Box *lleg;
 
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
@@ -38,7 +41,7 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
       for (int i=0; i<n; i++) {
         contact[i].surface.mode = dContactSoftCFM | dContactSoftERP;
         contact[i].surface.mu   = dInfinity;
-        contact[i].surface.soft_erp = 0.5;
+        contact[i].surface.soft_erp = 0.2;
         contact[i].surface.soft_cfm = 1e-8;
         dJointID c = dJointCreateContact(world, contactgroup, &contact[i]);
 
@@ -52,14 +55,20 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 static void simLoop(int pause) 
 {
   static int steps = 0;
+  dVector3 xyz;
 
   dSpaceCollide(space, 0, &nearCallback);
   dWorldStep(world, 0.01);
   dJointGroupEmpty(contactgroup);
 
-  human->draw();
-  sphere->draw();
+  rthigh->draw();
+  lthigh->draw();
+  rleg->draw();
+  lleg->draw();
 
+  dJointGetHingeAnchor(rnee, xyz);
+  printf("joint pos (%f, %f, %f)\n", xyz[0], xyz[1], xyz[2]);
+  printf("joint angle %f\n", dJointGetHingeAngle(rnee));
   // feedback = dJointGetFeedback(fixed);
   // printf("%5d Force fx=%6.2f ",steps++,feedback->f1[0]);
   // printf("fy=%6.2f ",feedback->f1[1]);
@@ -69,8 +78,11 @@ static void simLoop(int pause)
 
 void start()
 {
-  static float xyz[3] = {0.0, -3.0, 1.0};
-  static float hpr[3] = {90.0, 0.0, 0.0}; 
+  // static float xyz[3] = {0.0, -3.0, 1.0};
+  // static float hpr[3] = {90.0, 0.0, 0.0}; 
+
+  static float xyz[3] = {-3.0, 0.0, 1.0};
+  static float hpr[3] = {0.0, 0.0, 0.0}; 
   dsSetViewpoint(xyz, hpr);
 }
 
@@ -83,17 +95,16 @@ void setDrawStuff() {
   fn.path_to_textures = "/usr/local/lib/drawstuff.textures";
 }
 
-void generateHuman(dWorldID world, dSpaceID space)
-{
-  Sphere head(world, space, 0.75, 0, 0, 16.75, 0.48);
-  Box torso(world, space, 4.0, 2.0, 8.0, 0, 0, 12.0, 2.8);
-  Box rthigh(world, space, 1.5, 2.0, 4.0, -1.25, 0, 6.0, 0.84);
-  Box lthigh(world, space, 1.5, 2.0, 4.0, 1.25, 0, 6.0, 0.84);
-  Box rleg(world, space, 1.5, 2.0, 4.0, -1.25, 0, 2, 0.72);
-  Box lleg(world, space, 1.5, 2.0, 4.0, -1.25, 0, 2, 0.72);
-  human = new Human(world, head, torso, rthigh, lthigh, rleg, lleg, 0.0, 0.0);
-  sphere = &head;
-}
+// void generateHuman(dWorldID world, dSpaceID space)
+// {
+//   Sphere head(world, space, 0.75, 0, 0, 16.75, 0.48);
+//   Box torso(world, space, 4.0, 2.0, 8.0, 0, 0, 12.0, 2.8);
+//   Box rthigh(world, space, 1.5, 2.0, 4.0, -1.25, 0, 6.0, 0.84);
+//   Box lthigh(world, space, 1.5, 2.0, 4.0, 1.25, 0, 6.0, 0.84);
+//   Box rleg(world, space, 1.5, 2.0, 4.0, -1.25, 0, 2, 0.72);
+//   Box lleg(world, space, 1.5, 2.0, 4.0, -1.25, 0, 2, 0.72);
+//   human = new Human(world, head, torso, rthigh, lthigh, rleg, lleg, 0.0, 0.0);
+// }
 
 int main(int argc, char **argv)
 {
@@ -107,8 +118,26 @@ int main(int argc, char **argv)
 
   ground = dCreatePlane(space, 0, 0, 1, 0);
 
-  generateHuman(world, space);
-  sphere = new Sphere(world, space, 1, 0, 0, 0, 1);
+  rthigh = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.6, 0.84);
+  lthigh = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.6, 0.84);
+  rleg = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.2, 0.72);
+  lleg = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.2, 0.72);
+  
+  fixed = dJointCreateFixed(world, 0);
+  dJointAttach(fixed, rleg->getBodyId(), 0);
+  
+  rnee = dJointCreateHinge(world, 0);
+  dJointAttach(rnee, rthigh->getBodyId(), rleg->getBodyId());
+  dJointSetHingeAnchor(rnee, -0.125, 0, 0.4);
+  dJointSetHingeAnchor(rnee, 0, 1, 0);
+  dJointSetHingeParam(rnee, dParamHiStop, 0.5);
+
+  lnee = dJointCreateHinge(world, 0);
+  dJointAttach(lnee, lthigh->getBodyId(), lleg->getBodyId());
+  dJointSetHingeAnchor(lnee, 0, 0, 0);
+  dJointSetHingeAnchor(lnee, 0, -1, 0);
+  // dJointSetHingeParam(lnee, dParamLoStop, 90);
+  // dJointSetHingeParam(lnee, dParamHiStop, 90);
 
   dsSimulationLoop(argc, argv, 400, 400, &fn);
   dWorldDestroy(world);

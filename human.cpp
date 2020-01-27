@@ -11,7 +11,7 @@ Human::Human(dWorldID world, Object& head, Box& torso, Box& rthigh,
   lbase = dJointCreateHinge(world, 0);
   rnee = dJointCreateHinge(world, 0);
   lnee = dJointCreateHinge(world, 0);
-  dJointAttach(neck, head.getBodyId(), torso.getBodyId());
+  dJointAttach(neck, this->head->getBodyId(), torso.getBodyId());
   dJointAttach(rbase, torso.getBodyId(), rthigh.getBodyId());
   dJointSetHingeAnchor(rbase, 0, 0, 0);
   dJointSetHingeAxis(rbase, 1, 0, 0);
