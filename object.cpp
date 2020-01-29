@@ -2,6 +2,13 @@
 #include <drawstuff/drawstuff.h>
 #include "object.hpp"
 
+#ifdef dDOUBLE
+#define dsDrawBox      dsDrawBoxD
+#define dsDrawSphere   dsDrawSphereD
+#define dsDrawCylinder dsDrawCylinderD
+#define dsDrawCapsule  dsDrawCapsuleD
+#endif
+
 /*--------------------- Object class ----------------------*/
 
 Object::Object(dWorldID world, dReal x, dReal y, dReal z, dReal mass)
@@ -47,7 +54,7 @@ dGeomID Box::getGeomId()
 void Box::draw() const
 {
   dReal shape[] = {this->lx, this->ly, this->lz};
-  dsDrawBoxD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), shape);
+  dsDrawBox(dBodyGetPosition(this->body), dBodyGetRotation(this->body), shape);
 }
 
 /*--------------------- Sphere class ----------------------*/
@@ -65,7 +72,7 @@ Sphere::Sphere(dWorldID world, dSpaceID space, dReal radius, dReal x, dReal y, d
 
 void Sphere::draw() const
 {
-  dsDrawSphereD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->radius);
+  dsDrawSphere(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->radius);
 }
 
 dBodyID Sphere::getBodyId()
@@ -93,7 +100,7 @@ Capsule::Capsule(dWorldID world, dSpaceID space, dReal length, dReal radius, int
 
 void Capsule::draw() const
 {
-  dsDrawCapsuleD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
+  dsDrawCapsule(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
 }
 
 /*--------------------- Cylinder class ----------------------*/
@@ -111,5 +118,5 @@ Cylinder::Cylinder(dWorldID world, dSpaceID space, dReal length, dReal radius, i
 
 void Cylinder::draw() const
 {
-  dsDrawCylinderD(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
+  dsDrawCylinder(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
 }
