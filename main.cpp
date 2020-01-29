@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <ode/ode.h>
 #include <drawstuff/drawstuff.h>
 #include "object.hpp"
@@ -11,9 +12,14 @@
 #define dsDrawCapsule  dsDrawCapsuleD
 #endif
 
+#define  ESC    0x1B
 #define DRAW
-#define TORSO_SENSOR_WIDTH 10
-#define TORSO_SENSOR_HEIGHT 15
+#define TORSO_SENSOR_WIDTH 5
+#define TORSO_SENSOR_HEIGHT 5
+#define RTHIGH_SENSOR_WIDTH 5
+#define RTHIGH_SENSOR_HEIGHT 5
+#define LTHIGH_SENSOR_WIDTH 5
+#define LTHIGH_SENSOR_HEIGHT 5
 
 static dWorldID world;
 static dSpaceID space;
@@ -34,6 +40,25 @@ Box *lleg;
 // センサー
 dJointID torso_sensor_joints[TORSO_SENSOR_HEIGHT][TORSO_SENSOR_WIDTH];
 Box *torso_sensor_boxes[TORSO_SENSOR_HEIGHT][TORSO_SENSOR_WIDTH];
+dJointFeedback *torso_feedbacks[TORSO_SENSOR_HEIGHT][TORSO_SENSOR_WIDTH];
+dJointID rthigh_sensor_joints[RTHIGH_SENSOR_HEIGHT][RTHIGH_SENSOR_WIDTH];
+Box *rthigh_sensor_boxes[RTHIGH_SENSOR_HEIGHT][RTHIGH_SENSOR_WIDTH];
+dJointID lthigh_sensor_joints[LTHIGH_SENSOR_HEIGHT][LTHIGH_SENSOR_WIDTH];
+Box *lthigh_sensor_boxes[LTHIGH_SENSOR_HEIGHT][LTHIGH_SENSOR_WIDTH];
+
+dReal rss(const dReal *v)
+{
+  return std::sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+}
+
+void init()
+{
+  for (int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
+    for (int j=0; j<TORSO_SENSOR_WIDTH; j++) {
+      torso_feedbacks[i][j] = new dJointFeedback;
+    }
+  }
+}
 
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
@@ -49,10 +74,10 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
     if (n > 0) {
       for (int i=0; i<n; i++) {
         contact[i].surface.mode = dContactBounce | dContactSoftCFM | dContactSoftERP;
-        contact[i].surface.bounce = 0.2;
+        contact[i].surface.bounce = 0.1;
         contact[i].surface.mu   = dInfinity;
         contact[i].surface.soft_erp = 0.2;
-        contact[i].surface.soft_cfm = 1e-7;
+        contact[i].surface.soft_cfm = 1e-9;
         dJointID c = dJointCreateContact(world, contactgroup, &contact[i]);
 
         dJointAttach(c, dGeomGetBody(contact[i].geom.g1),
@@ -82,17 +107,40 @@ static void simLoop(int pause)
   rleg->draw();
   lleg->draw();
 
-  // dsSetColor(1, 0, 1);
-  // for (int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
-  //   for (int j=0; j<TORSO_SENSOR_WIDTH; j++) {
-  //     (torso_sensor_boxes[i][j])->draw();
-  //   }
-  // }
+  dsSetColor(1, 0, 1);
 
-  // feedback = dJointGetFeedback(fixed);
-  // printf("%5d Force fx=%6.2f ",steps++,feedback->f1[0]);
-  // printf("fy=%6.2f ",feedback->f1[1]);
-  // printf("fz=%6.2f \n",feedback->f1[2]);
+  printf("%c[2J", ESC);
+  printf("====== TORSO ========\n");
+  for (int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
+    for (int j=0; j<TORSO_SENSOR_WIDTH; j++) {
+      (torso_sensor_boxes[i][j])->draw();
+      torso_feedbacks[i][j] = dJointGetFeedback(torso_sensor_joints[i][j]);
+      printf("%6.2f ", rss(torso_feedbacks[i][j]->f1));
+    }
+    printf("\n");
+  }
+
+  printf("====== RTHIGH ========\n");
+  for (int i=0; i<RTHIGH_SENSOR_HEIGHT; i++) {
+    for (int j=0; j<RTHIGH_SENSOR_WIDTH; j++) {
+      (rthigh_sensor_boxes[i][j])->draw();
+      dJointSetFeedback(rthigh_sensor_joints[i][j], feedback);
+      feedback = dJointGetFeedback(rthigh_sensor_joints[i][j]);
+      printf("%6.2f ", rss(feedback->f1));
+    }
+    printf("\n");
+  }
+
+  printf("====== LTHIGH ========\n");
+  for (int i=0; i<LTHIGH_SENSOR_HEIGHT; i++) {
+    for (int j=0; j<LTHIGH_SENSOR_WIDTH; j++) {
+      (lthigh_sensor_boxes[i][j])->draw();
+      dJointSetFeedback(lthigh_sensor_joints[i][j], feedback);
+      feedback = dJointGetFeedback(lthigh_sensor_joints[i][j]);
+      printf("%6.2f ", rss(feedback->f1));
+    }
+    printf("\n");
+  }
 
 }
 
@@ -101,8 +149,8 @@ void start()
   // static float xyz[3] = {0.0, -3.0, 1.0};
   // static float hpr[3] = {90.0, 0.0, 0.0}; 
 
-  static float xyz[3] = {-3.0, 0.0, 1.0};
-  static float hpr[3] = {0.0, 0.0, 0.0}; 
+  static float xyz[3] = {0.0, 3.0, 1.0};
+  static float hpr[3] = {270.0, 0.0, 0.0}; 
   dsSetViewpoint(xyz, hpr);
 }
 
@@ -118,7 +166,7 @@ void setDrawStuff() {
 
 void generate_human() 
 {
-  head = new Sphere(world, space, 0.15, 0, 0, 1.55, 0.48);
+  head = new Sphere(world, space, 0.12, 0, 0, 1.52, 0.48);
   torso = new Box(world, space, 0.4, 0.2, 0.6, 0, 0, 1.1, 2.8);
   rthigh = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.6, 0.84);
   lthigh = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.6, 0.84);
@@ -150,12 +198,12 @@ void generate_human()
   dJointSetHingeAxis(lnee, 1, 0, 0);
   
   
-  dJointSetHingeParam(rback, dParamLoStop, M_PI/2);
-  dJointSetHingeParam(rback, dParamHiStop, M_PI/2);
+  dJointSetHingeParam(rback, dParamLoStop, M_PI * 75 / 180);
+  dJointSetHingeParam(rback, dParamHiStop, M_PI * 75 / 180);
   dJointSetHingeParam(rback, dParamFudgeFactor, 0);
 
-  dJointSetHingeParam(lback, dParamLoStop, M_PI/2);
-  dJointSetHingeParam(lback, dParamHiStop, M_PI/2);
+  dJointSetHingeParam(lback, dParamLoStop, M_PI * 75 / 180);
+  dJointSetHingeParam(lback, dParamHiStop, M_PI * 75 / 180);
   dJointSetHingeParam(lback, dParamFudgeFactor, 0);
 
   dJointSetHingeParam(rnee, dParamLoStop, -M_PI/2);
@@ -171,13 +219,43 @@ void generate_sensor()
 {
   for(int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
     for(int j=0; j<TORSO_SENSOR_WIDTH; j++) {
-      printf("a\n");
-      torso_sensor_boxes[i][j] = new Box(world, space, 0.04, 0.01, 0.04, -0.22+0.04*j, 0.105, 1.42-0.04*i, 1e-3);
+      dReal lx = 0.4 / TORSO_SENSOR_WIDTH;
+      dReal lz = 0.6 / TORSO_SENSOR_HEIGHT;
+      torso_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.01, lz*0.9,  
+                                         0.2-lx/2-lx*j, 0.105, 
+                                         1.4-lz/2-lz*i, 1e-4);
       torso_sensor_joints[i][j] = dJointCreateFixed(world, 0);
       dJointAttach(torso_sensor_joints[i][j], torso_sensor_boxes[i][j]->getBodyId(), torso->getBodyId());
       dJointSetFixed(torso_sensor_joints[i][j]);
+      dJointSetFeedback(torso_sensor_joints[i][j], torso_feedbacks[i][j]);
     }
   }
+
+  for(int i=0; i<RTHIGH_SENSOR_HEIGHT; i++) {
+    for(int j=0; j<RTHIGH_SENSOR_WIDTH; j++) {
+      dReal lx = 0.15 / RTHIGH_SENSOR_WIDTH;
+      dReal lz = 0.4 / RTHIGH_SENSOR_HEIGHT;
+      rthigh_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.01, lz*0.9,  
+                                         -0.05-lx/2-lx*j, 0.105, 
+                                         0.8-lz/2-lz*i, 1e-4);
+      rthigh_sensor_joints[i][j] = dJointCreateFixed(world, 0);
+      dJointAttach(rthigh_sensor_joints[i][j], rthigh_sensor_boxes[i][j]->getBodyId(), rthigh->getBodyId());
+      dJointSetFixed(rthigh_sensor_joints[i][j]);
+    }
+  }
+
+  for(int i=0; i<LTHIGH_SENSOR_HEIGHT; i++) {
+    for(int j=0; j<LTHIGH_SENSOR_WIDTH; j++) {
+      dReal lx = 0.15 / LTHIGH_SENSOR_WIDTH;
+      dReal lz = 0.4 / LTHIGH_SENSOR_HEIGHT;
+      lthigh_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.01, lz*0.9,  
+                                         0.2-lx/2-lx*j, 0.105, 
+                                         0.8-lz/2-lz*i, 1e-4);
+      lthigh_sensor_joints[i][j] = dJointCreateFixed(world, 0);
+      dJointAttach(lthigh_sensor_joints[i][j], lthigh_sensor_boxes[i][j]->getBodyId(), lthigh->getBodyId());
+      dJointSetFixed(lthigh_sensor_joints[i][j]);
+    }
+  }    
 }
 
 int main(int argc, char **argv)
@@ -185,6 +263,7 @@ int main(int argc, char **argv)
   setDrawStuff();
 
   dInitODE();
+  init();
   world = dWorldCreate();
   dWorldSetERP(world, 0.1);
   dWorldSetCFM(world, 1e-8);
