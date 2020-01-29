@@ -12,6 +12,8 @@
 #endif
 
 #define DRAW
+#define TORSO_SENSOR_WIDTH 10
+#define TORSO_SENSOR_HEIGHT 15
 
 static dWorldID world;
 static dSpaceID space;
@@ -29,6 +31,10 @@ Box *lthigh;
 Box *rleg;
 Box *lleg;
 
+// センサー
+dJointID torso_sensor_joints[TORSO_SENSOR_HEIGHT][TORSO_SENSOR_WIDTH];
+Box *torso_sensor_boxes[TORSO_SENSOR_HEIGHT][TORSO_SENSOR_WIDTH];
+
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
   static const int MAX_CONTACTS = 64;
@@ -43,10 +49,10 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
     if (n > 0) {
       for (int i=0; i<n; i++) {
         contact[i].surface.mode = dContactBounce | dContactSoftCFM | dContactSoftERP;
-        contact[i].surface.bounce = 1e-2;
+        contact[i].surface.bounce = 0.2;
         contact[i].surface.mu   = dInfinity;
         contact[i].surface.soft_erp = 0.2;
-        contact[i].surface.soft_cfm = 1e-8;
+        contact[i].surface.soft_cfm = 1e-7;
         dJointID c = dJointCreateContact(world, contactgroup, &contact[i]);
 
         dJointAttach(c, dGeomGetBody(contact[i].geom.g1),
@@ -76,6 +82,13 @@ static void simLoop(int pause)
   rleg->draw();
   lleg->draw();
 
+  // dsSetColor(1, 0, 1);
+  // for (int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
+  //   for (int j=0; j<TORSO_SENSOR_WIDTH; j++) {
+  //     (torso_sensor_boxes[i][j])->draw();
+  //   }
+  // }
+
   // feedback = dJointGetFeedback(fixed);
   // printf("%5d Force fx=%6.2f ",steps++,feedback->f1[0]);
   // printf("fy=%6.2f ",feedback->f1[1]);
@@ -102,20 +115,9 @@ void setDrawStuff() {
   fn.path_to_textures = "/usr/local/lib/drawstuff.textures";
 }
 
-int main(int argc, char **argv)
+
+void generate_human() 
 {
-  setDrawStuff();
-
-  dInitODE();
-  world = dWorldCreate();
-  dWorldSetERP(world, 0.1);
-  dWorldSetCFM(world, 1e-8);
-  space = dHashSpaceCreate(0);
-  contactgroup = dJointGroupCreate(0);
-  dWorldSetGravity(world, 0, 0, -9.8);
-
-  ground = dCreatePlane(space, 0, 0, 1, 0);
-
   head = new Sphere(world, space, 0.15, 0, 0, 1.55, 0.48);
   torso = new Box(world, space, 0.4, 0.2, 0.6, 0, 0, 1.1, 2.8);
   rthigh = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.6, 0.84);
@@ -163,6 +165,37 @@ int main(int argc, char **argv)
   dJointSetHingeParam(lnee, dParamLoStop, -M_PI/2);
   dJointSetHingeParam(lnee, dParamHiStop, -M_PI/2);
   dJointSetHingeParam(lnee, dParamFudgeFactor, 0);
+}
+
+void generate_sensor()
+{
+  for(int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
+    for(int j=0; j<TORSO_SENSOR_WIDTH; j++) {
+      printf("a\n");
+      torso_sensor_boxes[i][j] = new Box(world, space, 0.04, 0.01, 0.04, -0.22+0.04*j, 0.105, 1.42-0.04*i, 1e-3);
+      torso_sensor_joints[i][j] = dJointCreateFixed(world, 0);
+      dJointAttach(torso_sensor_joints[i][j], torso_sensor_boxes[i][j]->getBodyId(), torso->getBodyId());
+      dJointSetFixed(torso_sensor_joints[i][j]);
+    }
+  }
+}
+
+int main(int argc, char **argv)
+{
+  setDrawStuff();
+
+  dInitODE();
+  world = dWorldCreate();
+  dWorldSetERP(world, 0.1);
+  dWorldSetCFM(world, 1e-8);
+  space = dHashSpaceCreate(0);
+  contactgroup = dJointGroupCreate(0);
+  dWorldSetGravity(world, 0, 0, -9.8);
+
+  ground = dCreatePlane(space, 0, 0, 1, 0);
+
+  generate_human();
+  generate_sensor();
 
   dsSimulationLoop(argc, argv, 400, 400, &fn);
   dWorldDestroy(world);
