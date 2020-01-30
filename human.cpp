@@ -2,7 +2,7 @@
 #include "object.hpp"
 #include "human.hpp"
 
-Human::Human(dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dReal recline_angle, dReal nee_angle)
+Human::Human(dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dReal rec_angle, dReal nee_angle)
 {
   head = new Sphere(world, space, 0.12, 0, 0, 1.72, 0.48);
   torso = new Box(world, space, 0.4, 0.2, 0.6, 0, 0, 1.3, 2.8);
@@ -36,16 +36,16 @@ Human::Human(dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dReal re
   dJointSetHingeAxis(lnee, 1, 0, 0);
   
 
-  setHingeJointAngle(rback, M_PI * 90 / 180);  
+  setHingeJointAngle(rback, M_PI * rec_angle / 180);  
   dJointSetHingeParam(rback, dParamFudgeFactor, 0);
 
-  setHingeJointAngle(lback, M_PI * 90 / 180);  
+  setHingeJointAngle(lback, M_PI * rec_angle / 180);  
   dJointSetHingeParam(lback, dParamFudgeFactor, 0);
 
-  setHingeJointAngle(rnee, -M_PI * 90 / 180);  
+  setHingeJointAngle(rnee, -M_PI * nee_angle / 180);  
   dJointSetHingeParam(rnee, dParamFudgeFactor, 0);
 
-  setHingeJointAngle(lnee, -M_PI * 90 / 180);    
+  setHingeJointAngle(lnee, -M_PI * nee_angle / 180);    
   dJointSetHingeParam(lnee, dParamFudgeFactor, 0);
 }
 
@@ -71,4 +71,22 @@ void Human::draw() const {
   lthigh->draw();
   rleg->draw();
   lleg->draw();
+}
+
+
+void Human::rotation(dReal angle)
+{
+  dMatrix3 R;
+  dRFromAxisAndAngle(R, -1, 0, 0, M_PI * angle / 180);
+  dGeomSetRotation(this->torso->getGeomId(), R);
+}
+
+void Human::destroy()
+{
+  head->destroy();
+  torso->destroy();
+  rthigh->destroy();
+  lthigh->destroy();
+  rleg->destroy();
+  lleg->destroy();
 }

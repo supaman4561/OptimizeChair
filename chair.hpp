@@ -15,7 +15,7 @@ void setY(dReal &y)
 {
   std::random_device rd{};
   std::mt19937 mt(rd());
-  std::uniform_real_distribution<dReal> score(0.3,0.8);
+  std::uniform_real_distribution<dReal> score(0.2,0.4);
   y = score(mt);
 }
 
@@ -23,7 +23,7 @@ void setZ(dReal &z)
 {
   std::random_device rd{};
   std::mt19937 mt(rd());
-  std::uniform_real_distribution<dReal> score(0.2,0.6);
+  std::uniform_real_distribution<dReal> score(0.1,0.3);
   z = score(mt);
 }
 
@@ -31,7 +31,7 @@ void setLy(dReal &ly)
 {
   std::random_device rd{};
   std::mt19937 mt(rd());
-  std::uniform_real_distribution<dReal> score(0.1,0.8);
+  std::uniform_real_distribution<dReal> score(0.2,0.4);
   ly = score(mt);
 }
 

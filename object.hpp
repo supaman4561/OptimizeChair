@@ -14,6 +14,7 @@ public:
   dBodyID getBodyId();
   dGeomID getGeomId();
   void draw() const {};
+  void destroy();
 };
 
 class Box : public Object

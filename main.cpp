@@ -14,7 +14,6 @@
 #endif
 
 #define  ESC    0x1B
-#define DRAW
 #define TORSO_SENSOR_WIDTH 5
 #define TORSO_SENSOR_HEIGHT 5
 #define RTHIGH_SENSOR_WIDTH 5
@@ -23,6 +22,7 @@
 #define LTHIGH_SENSOR_HEIGHT 5
 #define BACKREST_NUM 20
 
+static bool FRAWFLAG = true;
 static dWorldID world;
 static dSpaceID space;
 static dGeomID ground;
@@ -31,16 +31,8 @@ static dJointGroupID contactgroup;
 dJointFeedback *feedback = new dJointFeedback;
 dsFunctions fn;
 
-Human *human;
-
 // 人間
-// dJointID neck, rback, lback, rnee, lnee;
-// Sphere *head;
-// Box *torso;
-// Box *rthigh;
-// Box *lthigh;
-// Box *rleg;
-// Box *lleg;
+Human *human;
 
 // 椅子
 Box *seat;
@@ -63,7 +55,7 @@ dReal rss(const dReal *v)
   return std::sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
 }
 
-void init()
+void init_feedback()
 {
   for (int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
     for (int j=0; j<TORSO_SENSOR_WIDTH; j++) {
@@ -94,12 +86,17 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
     dContact contact[MAX_CONTACTS];
     int n = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom, 
                     sizeof(dContact));
+    int isGround = ((ground == o1) || (ground == o2));
 
     if (n > 0) {
       for (int i=0; i<n; i++) {
         contact[i].surface.mode = dContactBounce | dContactSoftCFM | dContactSoftERP;
         contact[i].surface.bounce = 0.1;
-        contact[i].surface.mu   = dInfinity;
+        if (isGround) { 
+          contact[i].surface.mu   = 3.0;
+        } else {
+          contact[i].surface.mu   = 0.8;
+        }
         contact[i].surface.soft_erp = 0.2;
         contact[i].surface.soft_cfm = 1e-8;
         dJointID c = dJointCreateContact(world, contactgroup, &contact[i]);
@@ -129,8 +126,8 @@ static void simLoop(int pause)
   }
 
   dsSetColor(1, 0, 1);
-
   printf("%c[2J", ESC);
+  printf("STEP %d\n", steps);
   printf("====== TORSO ========\n");
   for (int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
     for (int j=0; j<TORSO_SENSOR_WIDTH; j++) {
@@ -161,6 +158,10 @@ static void simLoop(int pause)
     printf("\n");
   }
 
+  if (steps++ >= 200) {
+    steps = 0;
+    dsStop();
+  }
 }
 
 void start()
@@ -182,64 +183,14 @@ void setDrawStuff() {
   fn.path_to_textures = "/usr/local/lib/drawstuff.textures";
 }
 
-
-void generate_human() 
-{
-  human = new Human(world, space, 0.0, 0.0, 0.0, 90.0, 90.0);
-
-  // head = new Sphere(world, space, 0.12, 0, 0, 1.72, 0.48);
-  // torso = new Box(world, space, 0.4, 0.2, 0.6, 0, 0, 1.3, 2.8);
-  // rthigh = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.8, 0.84);
-  // lthigh = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.8, 0.84);
-  // rleg = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.4, 0.72);
-  // lleg = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.4, 0.72);
-
-  // neck = dJointCreateFixed(world, 0);
-  // dJointAttach(neck, head->getBodyId(), torso->getBodyId());
-  // dJointSetFixed(neck);
-
-  // rback = dJointCreateHinge(world, 0);
-  // dJointAttach(rback, torso->getBodyId(), rthigh->getBodyId());
-  // dJointSetHingeAnchor(rback, -0.125, -0.1, 1.0);
-  // dJointSetHingeAxis(rback, 1, 0, 0);
-
-  // lback = dJointCreateHinge(world, 0);
-  // dJointAttach(lback, torso->getBodyId(), lthigh->getBodyId());
-  // dJointSetHingeAnchor(lback, 0.125, -0.1, 1.0);
-  // dJointSetHingeAxis(lback, 1, 0, 0);
-  
-  // rnee = dJointCreateHinge(world, 0);
-  // dJointAttach(rnee, rthigh->getBodyId(), rleg->getBodyId());
-  // dJointSetHingeAnchor(rnee, -0.125, 0.1, 0.6);
-  // dJointSetHingeAxis(rnee, 1, 0, 0);
-
-  // lnee = dJointCreateHinge(world, 0);
-  // dJointAttach(lnee, lthigh->getBodyId(), lleg->getBodyId());
-  // dJointSetHingeAnchor(lnee, 0.125, 0.1, 0.6);
-  // dJointSetHingeAxis(lnee, 1, 0, 0);
-  
-
-  // setHingeJointAngle(rback, M_PI * 90 / 180);  
-  // dJointSetHingeParam(rback, dParamFudgeFactor, 0);
-
-  // setHingeJointAngle(lback, M_PI * 90 / 180);  
-  // dJointSetHingeParam(lback, dParamFudgeFactor, 0);
-
-  // setHingeJointAngle(rnee, -M_PI * 90 / 180);  
-  // dJointSetHingeParam(rnee, dParamFudgeFactor, 0);
-
-  // setHingeJointAngle(lnee, -M_PI * 90 / 180);    
-  // dJointSetHingeParam(lnee, dParamFudgeFactor, 0);
-}
-
 void generate_sensor()
 {
   for(int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
     for(int j=0; j<TORSO_SENSOR_WIDTH; j++) {
       dReal lx = 0.4 / TORSO_SENSOR_WIDTH;
       dReal lz = 0.6 / TORSO_SENSOR_HEIGHT;
-      torso_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.01, lz*0.9,  
-                                         0.2-lx/2-lx*j, 0.105, 
+      torso_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.05, lz*0.9,  
+                                         0.2-lx/2-lx*j, 0.125, 
                                          1.6-lz/2-lz*i, 1e-4);
       torso_sensor_joints[i][j] = dJointCreateFixed(world, 0);
       human->jointAttachToTorso(torso_sensor_joints[i][j],
@@ -253,8 +204,8 @@ void generate_sensor()
     for(int j=0; j<RTHIGH_SENSOR_WIDTH; j++) {
       dReal lx = 0.15 / RTHIGH_SENSOR_WIDTH;
       dReal lz = 0.4 / RTHIGH_SENSOR_HEIGHT;
-      rthigh_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.01, lz*0.9,  
-                                         -0.05-lx/2-lx*j, 0.105, 
+      rthigh_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.05, lz*0.9,  
+                                         -0.05-lx/2-lx*j, 0.125, 
                                          1.0-lz/2-lz*i, 1e-4);
       rthigh_sensor_joints[i][j] = dJointCreateFixed(world, 0);
       human->jointAttachToRthigh(rthigh_sensor_joints[i][j],
@@ -268,8 +219,8 @@ void generate_sensor()
     for(int j=0; j<LTHIGH_SENSOR_WIDTH; j++) {
       dReal lx = 0.15 / LTHIGH_SENSOR_WIDTH;
       dReal lz = 0.4 / LTHIGH_SENSOR_HEIGHT;
-      lthigh_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.01, lz*0.9,  
-                                         0.2-lx/2-lx*j, 0.105, 
+      lthigh_sensor_boxes[i][j] = new Box(world, space, lx*0.9, 0.05, lz*0.9,  
+                                         0.2-lx/2-lx*j, 0.125, 
                                          1.0-lz/2-lz*i, 1e-4);
       lthigh_sensor_joints[i][j] = dJointCreateFixed(world, 0);
       human->jointAttachToLthigh(lthigh_sensor_joints[i][j],
@@ -307,13 +258,9 @@ void generate_chair(chairInfo c)
   dJointSetFixed(fixed);
 }
 
-int main(int argc, char **argv)
+void simulation(int argc, char **argv, chairInfo ci)
 {
-  chairInfo ci;
-  setDrawStuff();
-
-  dInitODE();
-  init();
+  init_feedback();
   world = dWorldCreate();
   dWorldSetERP(world, 0.1);
   dWorldSetCFM(world, 1e-8);
@@ -323,13 +270,42 @@ int main(int argc, char **argv)
 
   ground = dCreatePlane(space, 0, 0, 1, 0);
 
-  generate_human();
+  human = new Human(world, space, 0.0, 0.0, 0.0, 80.0, 80.0);
   generate_sensor();
-  initChairInfo(ci, BACKREST_NUM);
   generate_chair(ci);
 
   dsSimulationLoop(argc, argv, 400, 400, &fn);
-  dWorldDestroy(world);
+  
+  human->destroy();
+  dJointGroupDestroy(contactgroup);
+  for (int i=0; i<TORSO_SENSOR_HEIGHT; i++) {
+    for (int j=0; j<TORSO_SENSOR_WIDTH; j++) {
+      torso_sensor_boxes[i][j]->destroy();
+    }
+  }
+  for (int i=0; i<RTHIGH_SENSOR_HEIGHT; i++) {
+    for (int j=0; j<RTHIGH_SENSOR_WIDTH; j++) {
+      rthigh_sensor_boxes[i][j]->destroy();
+    }
+  }
+  for (int i=0; i<LTHIGH_SENSOR_HEIGHT; i++) {
+    for (int j=0; j<LTHIGH_SENSOR_WIDTH; j++) {
+      lthigh_sensor_boxes[i][j]->destroy();
+    }
+  }
+  dWorldDestroy(world); 
+}
+
+int main(int argc, char **argv)
+{
+  chairInfo ci;
+  setDrawStuff();
+
+  dInitODE();
+  while(1) {
+    initChairInfo(ci, BACKREST_NUM);
+    simulation(argc, argv, ci);
+  }
   dCloseODE();
 
   return 0;

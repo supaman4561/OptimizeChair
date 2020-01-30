@@ -28,6 +28,12 @@ dGeomID Object::getGeomId()
   return this->geom;
 }
 
+void Object::destroy()
+{
+  dBodyDestroy(body);
+  dGeomDestroy(geom);
+}
+
 /*--------------------- Box class ----------------------*/
 
 Box::Box(dWorldID world, dSpaceID space, dReal lx, dReal ly, dReal lz, dReal x, dReal y, dReal z, dReal mass)

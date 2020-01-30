@@ -9,11 +9,13 @@ class Human
   Box *torso, *rthigh, *lthigh, *rleg, *lleg;
   dJointID neck, rback, lback, rnee, lnee;
 public:
-  Human(dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dReal recline_angle, dReal nee_angle);
+  Human(dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dReal rec_angle, dReal nee_angle);
   void jointAttachToTorso(dJointID joint, dBodyID body);
   void jointAttachToRthigh(dJointID joint, dBodyID body);
   void jointAttachToLthigh(dJointID joint, dBodyID body);
   void draw() const;
+  void rotation(dReal angle);
+  void destroy();
 };
 
 #endif // __HUMAN_H_
