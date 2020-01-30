@@ -16,6 +16,9 @@ public:
   void draw() const;
   void rotation(dReal angle);
   void destroy();
+  void move(dReal x, dReal y, dReal z);
+  int thighIsOn(Box box);
+
 };
 
 #endif // __HUMAN_H_
