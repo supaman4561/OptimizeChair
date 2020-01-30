@@ -120,3 +120,9 @@ void Cylinder::draw() const
 {
   dsDrawCylinder(dBodyGetPosition(this->body), dBodyGetRotation(this->body), this->length, this->radius);
 }
+
+void setHingeJointAngle(dJointID joint, dReal value)
+{
+  dJointSetHingeParam(joint, dParamLoStop, value);
+  dJointSetHingeParam(joint, dParamHiStop, value);
+}

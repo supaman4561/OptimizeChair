@@ -5,13 +5,14 @@
 
 class Human
 {
-  Object *head, *torso, *rthigh, *lthigh, *rleg, *lleg;
-  dJointID neck, rbase, lbase, rnee, lnee;
-  dReal recline_angle;
-  dReal nee_angle;
+  Sphere *head;
+  Box *torso, *rthigh, *lthigh, *rleg, *lleg;
+  dJointID neck, rback, lback, rnee, lnee;
 public:
-  Human(dWorldID world, Object& head, Box& torso, Box& rthigh,
-        Box& lthigh, Box& rleg,  Box& lleg, dReal recline_angle, dReal nee_angle);
+  Human(dWorldID world, dSpaceID space, dReal x, dReal y, dReal z, dReal recline_angle, dReal nee_angle);
+  void jointAttachToTorso(dJointID joint, dBodyID body);
+  void jointAttachToRthigh(dJointID joint, dBodyID body);
+  void jointAttachToLthigh(dJointID joint, dBodyID body);
   void draw() const;
 };
 

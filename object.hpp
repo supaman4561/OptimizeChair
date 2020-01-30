@@ -58,5 +58,6 @@ public:
   void draw() const;
 };
 
+void setHingeJointAngle(dJointID joint, dReal value);
 
 #endif // __OBJECT_H_
