@@ -3,6 +3,7 @@
 #include <drawstuff/drawstuff.h>
 #include "math.h"
 #include "object.hpp"
+#include "human.hpp"
 #include "chair.hpp"
 
 #ifdef dDOUBLE
@@ -30,14 +31,16 @@ static dJointGroupID contactgroup;
 dJointFeedback *feedback = new dJointFeedback;
 dsFunctions fn;
 
+Human *human;
+
 // 人間
-dJointID neck, rback, lback, rnee, lnee;
-Sphere *head;
-Box *torso;
-Box *rthigh;
-Box *lthigh;
-Box *rleg;
-Box *lleg;
+// dJointID neck, rback, lback, rnee, lnee;
+// Sphere *head;
+// Box *torso;
+// Box *rthigh;
+// Box *lthigh;
+// Box *rleg;
+// Box *lleg;
 
 // 椅子
 Box *seat;
@@ -81,12 +84,6 @@ void init()
   }
 }
 
-void setHingeJointAngle(dJointID joint, dReal value)
-{
-  dJointSetHingeParam(joint, dParamLoStop, value);
-  dJointSetHingeParam(joint, dParamHiStop, value);
-}
-
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
   static const int MAX_CONTACTS = 64;
@@ -124,15 +121,7 @@ static void simLoop(int pause)
   dJointGroupEmpty(contactgroup);
 
   dsSetColor(1, 1, 0);
-  head->draw();
-  dsSetColor(0, 0, 1);
-  torso->draw();
-  dsSetColor(1, 0, 0);
-  rthigh->draw();
-  lthigh->draw();
-  dsSetColor(0, 1, 0);
-  rleg->draw();
-  lleg->draw();
+  human->draw();
 
   seat->draw();
   for (int i=0; i<BACKREST_NUM; i++) {
@@ -196,49 +185,51 @@ void setDrawStuff() {
 
 void generate_human() 
 {
-  head = new Sphere(world, space, 0.12, 0, 0, 1.72, 0.48);
-  torso = new Box(world, space, 0.4, 0.2, 0.6, 0, 0, 1.3, 2.8);
-  rthigh = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.8, 0.84);
-  lthigh = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.8, 0.84);
-  rleg = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.4, 0.72);
-  lleg = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.4, 0.72);
+  human = new Human(world, space, 0.0, 0.0, 0.0, 90.0, 90.0);
 
-  neck = dJointCreateFixed(world, 0);
-  dJointAttach(neck, head->getBodyId(), torso->getBodyId());
-  dJointSetFixed(neck);
+  // head = new Sphere(world, space, 0.12, 0, 0, 1.72, 0.48);
+  // torso = new Box(world, space, 0.4, 0.2, 0.6, 0, 0, 1.3, 2.8);
+  // rthigh = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.8, 0.84);
+  // lthigh = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.8, 0.84);
+  // rleg = new Box(world, space, 0.15, 0.2, 0.4, -0.125, 0, 0.4, 0.72);
+  // lleg = new Box(world, space, 0.15, 0.2, 0.4, 0.125, 0, 0.4, 0.72);
 
-  rback = dJointCreateHinge(world, 0);
-  dJointAttach(rback, torso->getBodyId(), rthigh->getBodyId());
-  dJointSetHingeAnchor(rback, -0.125, -0.1, 1.0);
-  dJointSetHingeAxis(rback, 1, 0, 0);
+  // neck = dJointCreateFixed(world, 0);
+  // dJointAttach(neck, head->getBodyId(), torso->getBodyId());
+  // dJointSetFixed(neck);
 
-  lback = dJointCreateHinge(world, 0);
-  dJointAttach(lback, torso->getBodyId(), lthigh->getBodyId());
-  dJointSetHingeAnchor(lback, 0.125, -0.1, 1.0);
-  dJointSetHingeAxis(lback, 1, 0, 0);
+  // rback = dJointCreateHinge(world, 0);
+  // dJointAttach(rback, torso->getBodyId(), rthigh->getBodyId());
+  // dJointSetHingeAnchor(rback, -0.125, -0.1, 1.0);
+  // dJointSetHingeAxis(rback, 1, 0, 0);
+
+  // lback = dJointCreateHinge(world, 0);
+  // dJointAttach(lback, torso->getBodyId(), lthigh->getBodyId());
+  // dJointSetHingeAnchor(lback, 0.125, -0.1, 1.0);
+  // dJointSetHingeAxis(lback, 1, 0, 0);
   
-  rnee = dJointCreateHinge(world, 0);
-  dJointAttach(rnee, rthigh->getBodyId(), rleg->getBodyId());
-  dJointSetHingeAnchor(rnee, -0.125, 0.1, 0.6);
-  dJointSetHingeAxis(rnee, 1, 0, 0);
+  // rnee = dJointCreateHinge(world, 0);
+  // dJointAttach(rnee, rthigh->getBodyId(), rleg->getBodyId());
+  // dJointSetHingeAnchor(rnee, -0.125, 0.1, 0.6);
+  // dJointSetHingeAxis(rnee, 1, 0, 0);
 
-  lnee = dJointCreateHinge(world, 0);
-  dJointAttach(lnee, lthigh->getBodyId(), lleg->getBodyId());
-  dJointSetHingeAnchor(lnee, 0.125, 0.1, 0.6);
-  dJointSetHingeAxis(lnee, 1, 0, 0);
+  // lnee = dJointCreateHinge(world, 0);
+  // dJointAttach(lnee, lthigh->getBodyId(), lleg->getBodyId());
+  // dJointSetHingeAnchor(lnee, 0.125, 0.1, 0.6);
+  // dJointSetHingeAxis(lnee, 1, 0, 0);
   
 
-  setHingeJointAngle(rback, M_PI * 90 / 180);  
-  dJointSetHingeParam(rback, dParamFudgeFactor, 0);
+  // setHingeJointAngle(rback, M_PI * 90 / 180);  
+  // dJointSetHingeParam(rback, dParamFudgeFactor, 0);
 
-  setHingeJointAngle(lback, M_PI * 90 / 180);  
-  dJointSetHingeParam(lback, dParamFudgeFactor, 0);
+  // setHingeJointAngle(lback, M_PI * 90 / 180);  
+  // dJointSetHingeParam(lback, dParamFudgeFactor, 0);
 
-  setHingeJointAngle(rnee, -M_PI * 90 / 180);  
-  dJointSetHingeParam(rnee, dParamFudgeFactor, 0);
+  // setHingeJointAngle(rnee, -M_PI * 90 / 180);  
+  // dJointSetHingeParam(rnee, dParamFudgeFactor, 0);
 
-  setHingeJointAngle(lnee, -M_PI * 90 / 180);    
-  dJointSetHingeParam(lnee, dParamFudgeFactor, 0);
+  // setHingeJointAngle(lnee, -M_PI * 90 / 180);    
+  // dJointSetHingeParam(lnee, dParamFudgeFactor, 0);
 }
 
 void generate_sensor()
@@ -251,7 +242,8 @@ void generate_sensor()
                                          0.2-lx/2-lx*j, 0.105, 
                                          1.6-lz/2-lz*i, 1e-4);
       torso_sensor_joints[i][j] = dJointCreateFixed(world, 0);
-      dJointAttach(torso_sensor_joints[i][j], torso_sensor_boxes[i][j]->getBodyId(), torso->getBodyId());
+      human->jointAttachToTorso(torso_sensor_joints[i][j],
+                                torso_sensor_boxes[i][j]->getBodyId());
       dJointSetFixed(torso_sensor_joints[i][j]);
       dJointSetFeedback(torso_sensor_joints[i][j], torso_feedbacks[i][j]);
     }
@@ -265,7 +257,8 @@ void generate_sensor()
                                          -0.05-lx/2-lx*j, 0.105, 
                                          1.0-lz/2-lz*i, 1e-4);
       rthigh_sensor_joints[i][j] = dJointCreateFixed(world, 0);
-      dJointAttach(rthigh_sensor_joints[i][j], rthigh_sensor_boxes[i][j]->getBodyId(), rthigh->getBodyId());
+      human->jointAttachToRthigh(rthigh_sensor_joints[i][j],
+                                rthigh_sensor_boxes[i][j]->getBodyId());
       dJointSetFixed(rthigh_sensor_joints[i][j]);
       dJointSetFeedback(rthigh_sensor_joints[i][j], rthigh_feedbacks[i][j]);
     }
@@ -279,7 +272,8 @@ void generate_sensor()
                                          0.2-lx/2-lx*j, 0.105, 
                                          1.0-lz/2-lz*i, 1e-4);
       lthigh_sensor_joints[i][j] = dJointCreateFixed(world, 0);
-      dJointAttach(lthigh_sensor_joints[i][j], lthigh_sensor_boxes[i][j]->getBodyId(), lthigh->getBodyId());
+      human->jointAttachToLthigh(lthigh_sensor_joints[i][j],
+                                lthigh_sensor_boxes[i][j]->getBodyId());
       dJointSetFixed(lthigh_sensor_joints[i][j]);
       dJointSetFeedback(lthigh_sensor_joints[i][j], lthigh_feedbacks[i][j]);
     }
